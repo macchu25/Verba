@@ -17,7 +17,7 @@ export default function LessonDirectory({ lessons, getLessonScore, direction }: 
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedLevel, setSelectedLevel] = useState<string>('ALL');
 
-  const levels = ['ALL', 'A1', 'A2', 'B1', 'B2', 'C1'];
+  const levels = ['ALL', 'L1', 'L2', 'L3', 'L4', 'L5', 'L6', 'L7'];
 
   const filteredLessons = useMemo(() => {
     return lessons.filter((lesson) => {
@@ -161,9 +161,9 @@ export default function LessonDirectory({ lessons, getLessonScore, direction }: 
                     <td style={{ padding: '14px 12px' }}>
                       <span 
                         style={{ 
-                          background: lesson.levelCode === 'A1' || lesson.levelCode === 'A2' ? 'rgba(16, 185, 129, 0.1)' : lesson.levelCode === 'B1' || lesson.levelCode === 'B2' ? 'rgba(245, 158, 11, 0.1)' : 'rgba(244, 63, 94, 0.1)',
-                          color: lesson.levelCode === 'A1' || lesson.levelCode === 'A2' ? '#10b981' : lesson.levelCode === 'B1' || lesson.levelCode === 'B2' ? '#f59e0b' : '#f43f5e',
-                          border: `1.5px solid ${lesson.levelCode === 'A1' || lesson.levelCode === 'A2' ? '#10b981' : lesson.levelCode === 'B1' || lesson.levelCode === 'B2' ? '#f59e0b' : '#f43f5e'}`,
+                          background: lesson.levelCode === 'L1' || lesson.levelCode === 'L2' || lesson.levelCode === 'A1' || lesson.levelCode === 'A2' ? 'rgba(16, 185, 129, 0.1)' : lesson.levelCode === 'L3' || lesson.levelCode === 'L4' || lesson.levelCode === 'B1' || lesson.levelCode === 'B2' ? 'rgba(245, 158, 11, 0.1)' : 'rgba(244, 63, 94, 0.1)',
+                          color: lesson.levelCode === 'L1' || lesson.levelCode === 'L2' || lesson.levelCode === 'A1' || lesson.levelCode === 'A2' ? '#10b981' : lesson.levelCode === 'L3' || lesson.levelCode === 'L4' || lesson.levelCode === 'B1' || lesson.levelCode === 'B2' ? '#f59e0b' : '#f43f5e',
+                          border: `1.5px solid ${lesson.levelCode === 'L1' || lesson.levelCode === 'L2' || lesson.levelCode === 'A1' || lesson.levelCode === 'A2' ? '#10b981' : lesson.levelCode === 'L3' || lesson.levelCode === 'L4' || lesson.levelCode === 'B1' || lesson.levelCode === 'B2' ? '#f59e0b' : '#f43f5e'}`,
                           padding: '2px 8px',
                           borderRadius: '6px',
                           fontSize: '12.5px',

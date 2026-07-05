@@ -50,9 +50,9 @@ export default function TimelineRoadmap({ levels, lessons, direction, getLessonS
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
                   <span 
                     style={{ 
-                      background: level.code === 'A1' || level.code === 'A2' ? 'rgba(16, 185, 129, 0.12)' : level.code === 'B1' || level.code === 'B2' ? 'rgba(245, 158, 11, 0.12)' : 'rgba(244, 63, 94, 0.12)',
-                      color: level.code === 'A1' || level.code === 'A2' ? '#10b981' : level.code === 'B1' || level.code === 'B2' ? '#f59e0b' : '#f43f5e',
-                      border: `1.5px solid ${level.code === 'A1' || level.code === 'A2' ? '#10b981' : level.code === 'B1' || level.code === 'B2' ? '#f59e0b' : '#f43f5e'}`,
+                      background: level.code === 'L1' || level.code === 'L2' || level.code === 'A1' || level.code === 'A2' ? 'rgba(16, 185, 129, 0.12)' : level.code === 'L3' || level.code === 'L4' || level.code === 'B1' || level.code === 'B2' ? 'rgba(245, 158, 11, 0.12)' : 'rgba(244, 63, 94, 0.12)',
+                      color: level.code === 'L1' || level.code === 'L2' || level.code === 'A1' || level.code === 'A2' ? '#10b981' : level.code === 'L3' || level.code === 'L4' || level.code === 'B1' || level.code === 'B2' ? '#f59e0b' : '#f43f5e',
+                      border: `1.5px solid ${level.code === 'L1' || level.code === 'L2' || level.code === 'A1' || level.code === 'A2' ? '#10b981' : level.code === 'L3' || level.code === 'L4' || level.code === 'B1' || level.code === 'B2' ? '#f59e0b' : '#f43f5e'}`,
                       padding: '3px 8px',
                       borderRadius: '8px',
                       fontSize: '14px',
