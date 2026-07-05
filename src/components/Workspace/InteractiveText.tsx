@@ -23,11 +23,33 @@ export default function InteractiveText({ text, vocabList, isEnToVi }: Interacti
   const [translatedSelection, setTranslatedSelection] = useState('');
   const [popupCoords, setPopupCoords] = useState<{ x: number; y: number } | null>(null);
   const [loadingTranslation, setLoadingTranslation] = useState(false);
+  const [isSaved, setIsSaved] = useState(false);
+
+  useEffect(() => {
+    if (!selectedText) {
+      setIsSaved(false);
+      return;
+    }
+    const cleanWord = selectedText.toLowerCase().trim();
+    try {
+      const stored = localStorage.getItem('verba_personal_vocab');
+      if (stored) {
+        const list = JSON.parse(stored);
+        const exists = list.some((item: any) => item.word.toLowerCase().trim() === cleanWord);
+        setIsSaved(exists);
+      } else {
+        setIsSaved(false);
+      }
+    } catch (e) {
+      setIsSaved(false);
+    }
+  }, [selectedText]);
 
   const handleClosePopup = () => {
     setPopupCoords(null);
     setSelectedText('');
     setTranslatedSelection('');
+    setIsSaved(false);
   };
 
   useEffect(() => {
@@ -103,6 +125,35 @@ export default function InteractiveText({ text, vocabList, isEnToVi }: Interacti
       setTranslatedSelection('Lỗi kết nối máy chủ.');
     } finally {
       setLoadingTranslation(false);
+    }
+  };
+
+  const handleSaveToPersonalVocab = () => {
+    if (!selectedText || !translatedSelection) return;
+    const cleanWord = selectedText.trim();
+    const cleanMeaning = translatedSelection.trim();
+
+    // Try to find if it exists in the lesson's vocabList
+    const lessonVocab = vocabList.find(v => v.word.toLowerCase().trim() === cleanWord.toLowerCase());
+
+    const newItem = {
+      word: cleanWord,
+      ipa: lessonVocab?.ipa || '',
+      meaning: cleanMeaning,
+      example: lessonVocab?.example || '',
+      savedAt: Date.now()
+    };
+
+    try {
+      const stored = localStorage.getItem('verba_personal_vocab');
+      let list = stored ? JSON.parse(stored) : [];
+      // Remove duplicate if somehow exists
+      list = list.filter((item: any) => item.word.toLowerCase().trim() !== cleanWord.toLowerCase());
+      list.unshift(newItem); // Add to the top
+      localStorage.setItem('verba_personal_vocab', JSON.stringify(list));
+      setIsSaved(true);
+    } catch (e) {
+      console.error('Failed to save word to personal vocabulary', e);
     }
   };
 
@@ -320,10 +371,38 @@ export default function InteractiveText({ text, vocabList, isEnToVi }: Interacti
                     <div style={{ width: '12px', height: '12px', border: '2px solid rgba(125,160,101,0.2)', borderTopColor: 'var(--color-sage)', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
                     <span style={{ fontSize: '13px', fontWeight: 600 }}>Đang dịch...</span>
                   </div>
-                ) : (
-                  <p style={{ fontSize: '14px', fontWeight: 600, margin: 0, whiteSpace: 'pre-wrap' }}>
-                    {translatedSelection}
-                  </p>
+                 ) : (
+                  <>
+                    <p style={{ fontSize: '14px', fontWeight: 600, margin: 0, whiteSpace: 'pre-wrap' }}>
+                      {translatedSelection}
+                    </p>
+                    {translatedSelection && !translatedSelection.startsWith('Lỗi') && (
+                      <button
+                        onClick={handleSaveToPersonalVocab}
+                        disabled={isSaved}
+                        style={{
+                          marginTop: '12px',
+                          width: '100%',
+                          padding: '8px 12px',
+                          background: isSaved ? '#e2e8f0' : 'var(--color-sage)',
+                          color: isSaved ? '#64748b' : '#ffffff',
+                          border: isSaved ? '1.5px solid #cbd5e1' : '1.5px solid var(--color-sage)',
+                          borderRadius: '8px',
+                          fontSize: '12.5px',
+                          fontWeight: 700,
+                          cursor: isSaved ? 'default' : 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '6px',
+                          fontFamily: 'Outfit, sans-serif',
+                          transition: 'all 0.15s ease'
+                        }}
+                      >
+                        {isSaved ? '✓ Đã lưu vào từ điển' : '⭐ Lưu vào từ điển cá nhân'}
+                      </button>
+                    )}
+                  </>
                 )}
               </div>
             </div>
