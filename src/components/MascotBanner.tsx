@@ -8,44 +8,11 @@ interface MascotBannerProps {
 
 export default function MascotBanner({ completedCount, totalCount, progressPercent }: MascotBannerProps) {
   return (
-    <div 
-      className="glass-panel animate-slideup" 
-      style={{ 
-        padding: '28px', 
-        marginBottom: '40px', 
-        display: 'flex', 
-        flexDirection: 'row', 
-        alignItems: 'center', 
-        gap: '24px', 
-        flexWrap: 'wrap',
-        background: 'var(--bg-nature-light)',
-        borderColor: 'var(--color-forest)',
-        boxShadow: 'var(--shadow-earthy)',
-        position: 'relative',
-        overflow: 'hidden'
-      }}
-    >
+    <div className="mascot-banner-wrapper animate-slideup">
       {/* Background Illustrated Mascot/Banner */}
-      <div 
-        style={{ 
-          position: 'absolute', 
-          right: '20px', 
-          bottom: '-10px', 
-          width: '180px', 
-          height: '180px', 
-          backgroundImage: 'url("/nature_banner.png")', 
-          backgroundSize: 'contain', 
-          backgroundPosition: 'bottom right',
-          backgroundRepeat: 'no-repeat',
-          opacity: 0.9,
-          mixBlendMode: 'multiply',
-          animation: 'floatY 6s ease-in-out infinite',
-          pointerEvents: 'none',
-          zIndex: 1
-        }} 
-      />
+      <div className="mascot-banner-bg" />
 
-      <div style={{ flex: 1, zIndex: 2, minWidth: '240px', paddingRight: '120px' }}>
+      <div className="mascot-banner-content">
         <h2 style={{ fontSize: '26px', color: 'var(--color-forest)', marginBottom: '8px', fontFamily: 'Outfit' }}>
           Chào mừng đến với Verba! 🌳
         </h2>

@@ -398,9 +398,9 @@ export default function TranslationForm({
 
           return (
             <div key={idx} className="sentence-row">
-              <div className="sentence-label">
-                <span className="sentence-index">{idx + 1}</span>
-                <span>{sentence.trim()}</span>
+              <div className="sentence-label" style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
+                <span className="sentence-index" style={{ flexShrink: 0, marginTop: '2px' }}>{idx + 1}</span>
+                <span style={{ lineHeight: '1.4' }}>{sentence.trim()}</span>
               </div>
               <div style={{ position: 'relative' }}>
                 <input 

@@ -11,7 +11,7 @@ export default function DirectionSelector({ direction, onChange }: DirectionSele
       <h3 style={{ fontSize: '15px', color: 'var(--color-forest)', marginBottom: '14px', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 700 }}>
         Chọn chế độ dịch thuật
       </h3>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+      <div className="direction-grid">
         {/* Mode 1: EN -> VI */}
         <div 
           onClick={() => onChange('en-to-vi')}

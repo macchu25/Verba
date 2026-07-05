@@ -16,6 +16,7 @@ interface InteractiveTextProps {
 }
 
 export default function InteractiveText({ text, vocabList, isEnToVi }: InteractiveTextProps) {
+  const containerRef = useRef<HTMLDivElement>(null);
   const [hoveredVocabIdx, setHoveredVocabIdx] = useState<number | null>(null);
   const [tooltipAlign, setTooltipAlign] = useState<'center' | 'left' | 'right'>('center');
 
@@ -24,6 +25,17 @@ export default function InteractiveText({ text, vocabList, isEnToVi }: Interacti
   const [popupCoords, setPopupCoords] = useState<{ x: number; y: number } | null>(null);
   const [loadingTranslation, setLoadingTranslation] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Keep track of viewport width for mobile layout to avoid hydration issues
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   useEffect(() => {
     if (!selectedText) {
@@ -52,20 +64,7 @@ export default function InteractiveText({ text, vocabList, isEnToVi }: Interacti
     setIsSaved(false);
   };
 
-  useEffect(() => {
-    const handleDocumentMouseDown = (e: MouseEvent) => {
-      const target = e.target as HTMLElement;
-      if (!target.closest('.selection-translate-popup')) {
-        handleClosePopup();
-      }
-    };
-    document.addEventListener('mousedown', handleDocumentMouseDown);
-    return () => {
-      document.removeEventListener('mousedown', handleDocumentMouseDown);
-    };
-  }, []);
-
-  const handleMouseUp = (e: React.MouseEvent) => {
+  const handleSelection = (target: HTMLElement) => {
     // Wait slightly to get correct selection range
     setTimeout(() => {
       const selection = window.getSelection();
@@ -73,13 +72,26 @@ export default function InteractiveText({ text, vocabList, isEnToVi }: Interacti
 
       const selected = selection.toString().trim();
       if (!selected) {
-        const target = e.target as HTMLElement;
-        if (target.closest('.selection-translate-popup')) {
+        if (target && target.closest('.selection-translate-popup')) {
           return;
         }
         handleClosePopup();
         return;
       }
+
+      // Check if selection is within our interactive container
+      if (!containerRef.current) return;
+      let node = selection.anchorNode;
+      let isInContainer = false;
+      while (node) {
+        if (node === containerRef.current) {
+          isInContainer = true;
+          break;
+        }
+        node = node.parentNode;
+      }
+
+      if (!isInContainer) return;
 
       try {
         const range = selection.getRangeAt(0);
@@ -98,6 +110,50 @@ export default function InteractiveText({ text, vocabList, isEnToVi }: Interacti
       }
     }, 10);
   };
+
+  useEffect(() => {
+    const handleDocumentMouseDown = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (!target.closest('.selection-translate-popup')) {
+        handleClosePopup();
+      }
+    };
+
+    const handleDocumentMouseUp = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (target.closest('.selection-translate-popup')) {
+        return;
+      }
+      handleSelection(target);
+    };
+
+    const handleDocumentTouchStart = (e: TouchEvent) => {
+      const target = e.target as HTMLElement;
+      if (!target.closest('.selection-translate-popup')) {
+        handleClosePopup();
+      }
+    };
+
+    const handleDocumentTouchEnd = (e: TouchEvent) => {
+      const target = e.target as HTMLElement;
+      if (target.closest('.selection-translate-popup')) {
+        return;
+      }
+      handleSelection(target);
+    };
+
+    document.addEventListener('mousedown', handleDocumentMouseDown);
+    document.addEventListener('mouseup', handleDocumentMouseUp);
+    document.addEventListener('touchstart', handleDocumentTouchStart);
+    document.addEventListener('touchend', handleDocumentTouchEnd);
+
+    return () => {
+      document.removeEventListener('mousedown', handleDocumentMouseDown);
+      document.removeEventListener('mouseup', handleDocumentMouseUp);
+      document.removeEventListener('touchstart', handleDocumentTouchStart);
+      document.removeEventListener('touchend', handleDocumentTouchEnd);
+    };
+  }, []);
 
   const handleTranslateSelection = async () => {
     if (!selectedText) return;
@@ -160,17 +216,8 @@ export default function InteractiveText({ text, vocabList, isEnToVi }: Interacti
   const getSelectionPopupStyles = () => {
     if (!popupCoords) return {};
 
-    const isMobile = typeof window !== 'undefined' && window.innerWidth <= 768;
-
     if (isMobile) {
-      return {
-        position: 'fixed' as const,
-        left: '50%',
-        top: '50%',
-        transform: 'translate(-50%, -50%)',
-        zIndex: 9999,
-        pointerEvents: 'auto' as const
-      };
+      return {};
     }
 
     const popupWidth = 280;
@@ -275,11 +322,11 @@ export default function InteractiveText({ text, vocabList, isEnToVi }: Interacti
   };
 
   return (
-    <div onMouseUp={handleMouseUp} style={{ position: 'relative' }}>
+    <div ref={containerRef} style={{ position: 'relative' }}>
       {renderContent()}
 
       {/* Backdrop overlay for mobile to lock focus and tap-to-close */}
-      {popupCoords && typeof window !== 'undefined' && window.innerWidth <= 768 && (
+      {popupCoords && isMobile && (
         <div
           onClick={handleClosePopup}
           style={{
@@ -297,28 +344,13 @@ export default function InteractiveText({ text, vocabList, isEnToVi }: Interacti
 
       {popupCoords && (
         <div
-          className="selection-translate-popup animate-bouncein"
+          className={`selection-translate-popup ${isMobile ? 'selection-bottom-sheet animate-slideup' : 'animate-bouncein'}`}
           style={getSelectionPopupStyles()}
         >
           {!translatedSelection && !loadingTranslation ? (
             <button
               onClick={handleTranslateSelection}
-              style={{
-                background: 'var(--color-forest)',
-                color: '#ffffff',
-                border: '2.5px solid var(--color-forest)',
-                boxShadow: '3px 3px 0px rgba(46,59,38,0.2)',
-                padding: '6px 14px',
-                borderRadius: '20px',
-                fontSize: '13px',
-                fontWeight: 700,
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                fontFamily: 'Outfit, sans-serif',
-                transition: 'transform 0.1s ease'
-              }}
+              className="selection-btn-trigger"
               onMouseDown={(e) => e.stopPropagation()}
               onMouseUp={(e) => e.stopPropagation()}
             >
@@ -326,18 +358,7 @@ export default function InteractiveText({ text, vocabList, isEnToVi }: Interacti
             </button>
           ) : (
             <div
-              style={{
-                width: '280px',
-                padding: '14px',
-                background: '#ffffff',
-                border: '3px solid var(--color-forest)',
-                borderRadius: '14px',
-                boxShadow: '5px 5px 0px var(--color-forest)',
-                fontFamily: 'var(--font-primary)',
-                textAlign: 'left',
-                lineHeight: '1.45',
-                color: 'var(--color-forest)'
-              }}
+              className="selection-popup-content"
               onMouseDown={(e) => e.stopPropagation()}
               onMouseUp={(e) => e.stopPropagation()}
             >

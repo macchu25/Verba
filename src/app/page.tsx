@@ -83,6 +83,29 @@ export default function DashboardPage() {
 
   return (
     <div className="dashboard-layout">
+      {/* Mobile Sticky Top Header */}
+      <header className="mobile-top-header">
+        <h1 style={{ fontSize: '24px', background: 'linear-gradient(to right, #3a4f2f, #7da065)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', fontFamily: 'Outfit', fontWeight: 800, margin: 0 }}>
+          Verba
+        </h1>
+        {progress.length > 0 && (
+          <button 
+            onClick={handleReset} 
+            className="btn btn-secondary" 
+            style={{ 
+              padding: '6px 12px', 
+              fontSize: '11px',
+              borderWidth: '1.5px',
+              borderRadius: '8px',
+              boxShadow: 'none'
+            }}
+            disabled={loading}
+          >
+            Reset
+          </button>
+        )}
+      </header>
+
       {/* Left Column: Sidebar Navigation */}
       <aside className="sidebar-col animate-slideup">
         <div>
@@ -212,6 +235,31 @@ export default function DashboardPage() {
           )}
         </div>
       </main>
+
+      {/* Mobile Sticky Bottom Navigation */}
+      <nav className="mobile-bottom-nav">
+        <button 
+          onClick={() => setActiveTab('roadmap')}
+          className={`mobile-nav-item ${activeTab === 'roadmap' ? 'active' : ''}`}
+        >
+          <span style={{ fontSize: '18px' }}>🗺️</span>
+          <span>Lộ trình</span>
+        </button>
+        <button 
+          onClick={() => setActiveTab('vocab')}
+          className={`mobile-nav-item ${activeTab === 'vocab' ? 'active' : ''}`}
+        >
+          <span style={{ fontSize: '18px' }}>📚</span>
+          <span>Kho từ vựng</span>
+        </button>
+        <button 
+          onClick={() => setActiveTab('directory')}
+          className={`mobile-nav-item ${activeTab === 'directory' ? 'active' : ''}`}
+        >
+          <span style={{ fontSize: '18px' }}>🔍</span>
+          <span>Mục lục</span>
+        </button>
+      </nav>
     </div>
   );
 }

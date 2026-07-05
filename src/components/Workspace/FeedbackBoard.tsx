@@ -38,7 +38,7 @@ export default function FeedbackBoard({ result, keywords, onReset }: FeedbackBoa
     <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }} className="animate-slideup">
       {/* Score Header Card */}
       <div 
-        className="glass-panel" 
+        className="glass-panel feedback-score-header" 
         style={{ 
           padding: '32px', 
           display: 'flex', 

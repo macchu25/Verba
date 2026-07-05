@@ -125,99 +125,170 @@ export default function LessonDirectory({ lessons, getLessonScore, direction }: 
 
       {/* Lessons List Table */}
       {filteredLessons.length > 0 ? (
-        <div 
-          className="glass-panel" 
-          style={{ 
-            padding: '12px 24px', 
-            background: '#ffffff', 
-            border: '3px solid var(--color-forest)', 
-            boxShadow: 'var(--shadow-earthy)', 
-            borderRadius: '20px',
-            overflowX: 'auto'
-          }}
-        >
-          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: '600px' }}>
-            <thead>
-              <tr style={{ borderBottom: '2.5px solid var(--color-forest)' }}>
-                <th style={{ padding: '16px 12px', color: 'var(--color-forest)', fontFamily: 'Outfit', fontWeight: 800, width: '100px' }}>Cấp độ</th>
-                <th style={{ padding: '16px 12px', color: 'var(--color-forest)', fontFamily: 'Outfit', fontWeight: 800 }}>Tiêu đề bài học</th>
-                <th style={{ padding: '16px 12px', color: 'var(--color-forest)', fontFamily: 'Outfit', fontWeight: 800, width: '140px', textAlign: 'center' }}>Điểm số</th>
-                <th style={{ padding: '16px 12px', color: 'var(--color-forest)', fontFamily: 'Outfit', fontWeight: 800, width: '150px', textAlign: 'right' }}>Thao tác</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredLessons.map((lesson) => {
-                const score = getLessonScore(lesson._id);
-                const isCompleted = score !== null && score >= 50;
+        <>
+          {/* Desktop Table view */}
+          <div 
+            className="glass-panel hide-on-mobile" 
+            style={{ 
+              padding: '12px 24px', 
+              background: '#ffffff', 
+              border: '3px solid var(--color-forest)', 
+              boxShadow: 'var(--shadow-earthy)', 
+              borderRadius: '20px',
+              overflowX: 'auto'
+            }}
+          >
+            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: '600px' }}>
+              <thead>
+                <tr style={{ borderBottom: '2.5px solid var(--color-forest)' }}>
+                  <th style={{ padding: '16px 12px', color: 'var(--color-forest)', fontFamily: 'Outfit', fontWeight: 800, width: '100px' }}>Cấp độ</th>
+                  <th style={{ padding: '16px 12px', color: 'var(--color-forest)', fontFamily: 'Outfit', fontWeight: 800 }}>Tiêu đề bài học</th>
+                  <th style={{ padding: '16px 12px', color: 'var(--color-forest)', fontFamily: 'Outfit', fontWeight: 800, width: '140px', textAlign: 'center' }}>Điểm số</th>
+                  <th style={{ padding: '16px 12px', color: 'var(--color-forest)', fontFamily: 'Outfit', fontWeight: 800, width: '150px', textAlign: 'right' }}>Thao tác</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredLessons.map((lesson) => {
+                  const score = getLessonScore(lesson._id);
+                  const isCompleted = score !== null && score >= 50;
 
-                return (
-                  <tr 
-                    key={lesson._id} 
-                    style={{ 
-                      borderBottom: '1.5px solid rgba(46,59,38,0.06)',
-                      transition: 'background 0.2s ease'
-                    }}
-                  >
-                    <td style={{ padding: '14px 12px' }}>
-                      <span 
-                        style={{ 
-                          background: lesson.levelCode === 'L1' || lesson.levelCode === 'L2' || lesson.levelCode === 'A1' || lesson.levelCode === 'A2' ? 'rgba(16, 185, 129, 0.1)' : lesson.levelCode === 'L3' || lesson.levelCode === 'L4' || lesson.levelCode === 'B1' || lesson.levelCode === 'B2' ? 'rgba(245, 158, 11, 0.1)' : 'rgba(244, 63, 94, 0.1)',
-                          color: lesson.levelCode === 'L1' || lesson.levelCode === 'L2' || lesson.levelCode === 'A1' || lesson.levelCode === 'A2' ? '#10b981' : lesson.levelCode === 'L3' || lesson.levelCode === 'L4' || lesson.levelCode === 'B1' || lesson.levelCode === 'B2' ? '#f59e0b' : '#f43f5e',
-                          border: `1.5px solid ${lesson.levelCode === 'L1' || lesson.levelCode === 'L2' || lesson.levelCode === 'A1' || lesson.levelCode === 'A2' ? '#10b981' : lesson.levelCode === 'L3' || lesson.levelCode === 'L4' || lesson.levelCode === 'B1' || lesson.levelCode === 'B2' ? '#f59e0b' : '#f43f5e'}`,
-                          padding: '2px 8px',
-                          borderRadius: '6px',
-                          fontSize: '12.5px',
-                          fontWeight: 800,
-                          fontFamily: 'Outfit'
-                        }}
-                      >
-                        {lesson.levelCode}
-                      </span>
-                    </td>
-                    <td style={{ padding: '14px 12px', fontWeight: 700, color: 'var(--color-forest)' }}>
-                      {lesson.title}
-                    </td>
-                    <td style={{ padding: '14px 12px', textAlign: 'center' }}>
-                      {score !== null ? (
+                  return (
+                    <tr 
+                      key={lesson._id} 
+                      style={{ 
+                        borderBottom: '1.5px solid rgba(46,59,38,0.06)',
+                        transition: 'background 0.2s ease'
+                      }}
+                    >
+                      <td style={{ padding: '14px 12px' }}>
                         <span 
                           style={{ 
-                            color: score >= 80 ? 'var(--color-success)' : score >= 50 ? 'var(--color-warning)' : 'var(--color-danger)', 
-                            fontWeight: 800, 
-                            fontFamily: 'Outfit',
-                            fontSize: '16px',
-                            background: 'rgba(0,0,0,0.02)',
-                            padding: '3px 10px',
-                            borderRadius: '8px',
-                            border: '1.5px solid rgba(46,59,38,0.06)'
+                            background: lesson.levelCode === 'L1' || lesson.levelCode === 'L2' || lesson.levelCode === 'A1' || lesson.levelCode === 'A2' ? 'rgba(16, 185, 129, 0.1)' : lesson.levelCode === 'L3' || lesson.levelCode === 'L4' || lesson.levelCode === 'B1' || lesson.levelCode === 'B2' ? 'rgba(245, 158, 11, 0.1)' : 'rgba(244, 63, 94, 0.1)',
+                            color: lesson.levelCode === 'L1' || lesson.levelCode === 'L2' || lesson.levelCode === 'A1' || lesson.levelCode === 'A2' ? '#10b981' : lesson.levelCode === 'L3' || lesson.levelCode === 'L4' || lesson.levelCode === 'B1' || lesson.levelCode === 'B2' ? '#f59e0b' : '#f43f5e',
+                            border: `1.5px solid ${lesson.levelCode === 'L1' || lesson.levelCode === 'L2' || lesson.levelCode === 'A1' || lesson.levelCode === 'A2' ? '#10b981' : lesson.levelCode === 'L3' || lesson.levelCode === 'L4' || lesson.levelCode === 'B1' || lesson.levelCode === 'B2' ? '#f59e0b' : '#f43f5e'}`,
+                            padding: '2px 8px',
+                            borderRadius: '6px',
+                            fontSize: '12.5px',
+                            fontWeight: 800,
+                            fontFamily: 'Outfit'
                           }}
                         >
-                          {score} / 100
+                          {lesson.levelCode}
                         </span>
-                      ) : (
-                        <span style={{ color: '#94a3b8', fontSize: '13.5px', fontWeight: 500 }}>Chưa làm</span>
-                      )}
-                    </td>
-                    <td style={{ padding: '14px 12px', textAlign: 'right' }}>
-                      <Link 
-                        href={`/lessons/${lesson._id}?dir=${direction}`}
-                        className="btn btn-secondary"
+                      </td>
+                      <td style={{ padding: '14px 12px', fontWeight: 700, color: 'var(--color-forest)' }}>
+                        {lesson.title}
+                      </td>
+                      <td style={{ padding: '14px 12px', textAlign: 'center' }}>
+                        {score !== null ? (
+                          <span 
+                            style={{ 
+                              color: score >= 80 ? 'var(--color-success)' : score >= 50 ? 'var(--color-warning)' : 'var(--color-danger)', 
+                              fontWeight: 800, 
+                              fontFamily: 'Outfit',
+                              fontSize: '16px',
+                              background: 'rgba(0,0,0,0.02)',
+                              padding: '3px 10px',
+                              borderRadius: '8px',
+                              border: '1.5px solid rgba(46,59,38,0.06)'
+                            }}
+                          >
+                            {score} / 100
+                          </span>
+                        ) : (
+                          <span style={{ color: '#94a3b8', fontSize: '13.5px', fontWeight: 500 }}>Chưa làm</span>
+                        )}
+                      </td>
+                      <td style={{ padding: '14px 12px', textAlign: 'right' }}>
+                        <Link 
+                          href={`/lessons/${lesson._id}?dir=${direction}`}
+                          className="btn btn-secondary"
+                          style={{ 
+                            padding: '6px 16px', 
+                            fontSize: '13px', 
+                            borderWidth: '2px', 
+                            borderRadius: '8px',
+                            boxShadow: '2px 2px 0px var(--color-forest)'
+                          }}
+                        >
+                          {isCompleted ? 'Dịch lại' : 'Bắt đầu dịch'}
+                        </Link>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Mobile Cards List */}
+          <div className="show-on-mobile responsive-table-cards">
+            {filteredLessons.map((lesson) => {
+              const score = getLessonScore(lesson._id);
+              const isCompleted = score !== null && score >= 50;
+
+              return (
+                <div key={lesson._id} className="responsive-card-item animate-bouncein">
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span 
+                      style={{ 
+                        background: lesson.levelCode === 'L1' || lesson.levelCode === 'L2' || lesson.levelCode === 'A1' || lesson.levelCode === 'A2' ? 'rgba(16, 185, 129, 0.1)' : lesson.levelCode === 'L3' || lesson.levelCode === 'L4' || lesson.levelCode === 'B1' || lesson.levelCode === 'B2' ? 'rgba(245, 158, 11, 0.1)' : 'rgba(244, 63, 94, 0.1)',
+                        color: lesson.levelCode === 'L1' || lesson.levelCode === 'L2' || lesson.levelCode === 'A1' || lesson.levelCode === 'A2' ? '#10b981' : lesson.levelCode === 'L3' || lesson.levelCode === 'L4' || lesson.levelCode === 'B1' || lesson.levelCode === 'B2' ? '#f59e0b' : '#f43f5e',
+                        border: `1.5px solid ${lesson.levelCode === 'L1' || lesson.levelCode === 'L2' || lesson.levelCode === 'A1' || lesson.levelCode === 'A2' ? '#10b981' : lesson.levelCode === 'L3' || lesson.levelCode === 'L4' || lesson.levelCode === 'B1' || lesson.levelCode === 'B2' ? '#f59e0b' : '#f43f5e'}`,
+                        padding: '2px 8px',
+                        borderRadius: '6px',
+                        fontSize: '12.5px',
+                        fontWeight: 800,
+                        fontFamily: 'Outfit'
+                      }}
+                    >
+                      {lesson.levelCode}
+                    </span>
+                    
+                    {score !== null ? (
+                      <span 
                         style={{ 
-                          padding: '6px 16px', 
-                          fontSize: '13px', 
-                          borderWidth: '2px', 
-                          borderRadius: '8px',
-                          boxShadow: '2px 2px 0px var(--color-forest)'
+                          color: score >= 80 ? 'var(--color-success)' : score >= 50 ? 'var(--color-warning)' : 'var(--color-danger)', 
+                          fontWeight: 800, 
+                          fontFamily: 'Outfit',
+                          fontSize: '14px',
+                          background: 'rgba(0,0,0,0.02)',
+                          padding: '2px 8px',
+                          borderRadius: '6px',
+                          border: '1.5px solid rgba(46,59,38,0.06)'
                         }}
                       >
-                        {isCompleted ? 'Dịch lại' : 'Bắt đầu dịch'}
-                      </Link>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+                        {score} / 100
+                      </span>
+                    ) : (
+                      <span style={{ color: '#94a3b8', fontSize: '12.5px', fontWeight: 500 }}>Chưa làm</span>
+                    )}
+                  </div>
+
+                  <h4 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--color-forest)', margin: '4px 0 8px 0' }}>
+                    {lesson.title}
+                  </h4>
+
+                  <Link 
+                    href={`/lessons/${lesson._id}?dir=${direction}`}
+                    className="btn btn-secondary"
+                    style={{ 
+                      padding: '8px 16px', 
+                      fontSize: '13px', 
+                      borderWidth: '2px', 
+                      borderRadius: '8px',
+                      boxShadow: '2px 2px 0px var(--color-forest)',
+                      width: '100%',
+                      justifyContent: 'center'
+                    }}
+                  >
+                    {isCompleted ? 'Dịch lại' : 'Bắt đầu dịch'}
+                  </Link>
+                </div>
+              );
+            })}
+          </div>
+        </>
       ) : (
         <div 
           className="glass-panel" 
