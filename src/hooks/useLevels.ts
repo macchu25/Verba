@@ -13,7 +13,12 @@ export function useLevels() {
     try {
       setLoading(true);
       setError('');
-      const res = await fetch(`${API_URL}/api/levels`);
+      const token = localStorage.getItem('verba_token');
+      const res = await fetch(`${API_URL}/api/levels`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
       const data = await res.json();
       if (data.success) {
         setLevels(data.levels || []);
@@ -32,7 +37,13 @@ export function useLevels() {
   const resetAllProgress = useCallback(async () => {
     try {
       setLoading(true);
-      const res = await fetch(`${API_URL}/api/levels`, { method: 'DELETE' });
+      const token = localStorage.getItem('verba_token');
+      const res = await fetch(`${API_URL}/api/levels`, { 
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
       const data = await res.json();
       if (data.success) {
         setProgress([]);

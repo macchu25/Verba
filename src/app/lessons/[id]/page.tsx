@@ -3,6 +3,8 @@
 import React, { useEffect, useState, use } from 'react';
 import { useParams, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import { useAuth } from '@/context/AuthContext';
+import AuthForm from '@/components/AuthForm';
 import InteractiveText from '@/components/Workspace/InteractiveText';
 import VocabularyList from '@/components/Workspace/VocabularyList';
 import GrammarTips from '@/components/Workspace/GrammarTips';
@@ -43,6 +45,8 @@ export default function LessonWorkspacePage() {
   const id = params.id as string;
   const direction = (searchParams.get('dir') || 'en-to-vi') as 'en-to-vi' | 'vi-to-en';
 
+  const { user, loading: authLoading } = useAuth();
+
   const [lesson, setLesson] = useState<Lesson | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -54,7 +58,12 @@ export default function LessonWorkspacePage() {
   const fetchLesson = async () => {
     try {
       setLoading(true);
-      const res = await fetch(`${API_URL}/api/lessons/${id}`);
+      const token = localStorage.getItem('verba_token');
+      const res = await fetch(`${API_URL}/api/lessons/${id}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
       const data = await res.json();
       if (data.success) {
         setLesson(data.lesson);
@@ -69,10 +78,10 @@ export default function LessonWorkspacePage() {
   };
 
   useEffect(() => {
-    if (id) {
+    if (id && user) {
       fetchLesson();
     }
-  }, [id]);
+  }, [id, user]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -80,9 +89,13 @@ export default function LessonWorkspacePage() {
 
     try {
       setSubmitting(true);
+      const token = localStorage.getItem('verba_token');
       const res = await fetch(`${API_URL}/api/lessons/${id}/submit`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
         body: JSON.stringify({
           userTranslation,
           direction
@@ -100,6 +113,19 @@ export default function LessonWorkspacePage() {
       setSubmitting(false);
     }
   };
+
+  if (authLoading) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', gap: '16px' }}>
+        <div style={{ width: '40px', height: '40px', border: '3px solid rgba(125, 160, 101, 0.1)', borderTopColor: 'var(--color-forest)', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+        <p style={{ color: 'var(--color-forest)', fontFamily: 'Outfit, sans-serif', fontWeight: 600 }}>Đang kiểm tra đăng nhập...</p>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <AuthForm />;
+  }
 
   if (loading) {
     return (

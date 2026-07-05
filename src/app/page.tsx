@@ -2,6 +2,8 @@
 
 import React, { useState } from 'react';
 import { useLevels } from '@/hooks/useLevels';
+import { useAuth } from '@/context/AuthContext';
+import AuthForm from '@/components/AuthForm';
 import Header from '@/components/Header';
 import MascotBanner from '@/components/MascotBanner';
 import DirectionSelector from '@/components/DirectionSelector';
@@ -10,6 +12,7 @@ import VocabStore from '@/components/VocabStore';
 import LessonDirectory from '@/components/LessonDirectory';
 
 export default function DashboardPage() {
+  const { user, loading: authLoading, logout } = useAuth();
   const { 
     levels, 
     lessons, 
@@ -57,6 +60,19 @@ export default function DashboardPage() {
     return seen.size;
   }, [lessons]);
 
+  if (authLoading) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', gap: '16px' }}>
+        <div style={{ width: '40px', height: '40px', border: '3px solid rgba(125, 160, 101, 0.1)', borderTopColor: 'var(--color-forest)', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+        <p style={{ color: 'var(--color-forest)', fontFamily: 'Outfit, sans-serif', fontWeight: 600 }}>Đang kiểm tra đăng nhập...</p>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <AuthForm />;
+  }
+
   if (loading) {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', gap: '16px' }}>
@@ -85,32 +101,74 @@ export default function DashboardPage() {
     <div className="dashboard-layout">
       {/* Mobile Sticky Top Header */}
       <header className="mobile-top-header">
-        <h1 style={{ fontSize: '24px', background: 'linear-gradient(to right, #3a4f2f, #7da065)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', fontFamily: 'Outfit', fontWeight: 800, margin: 0 }}>
-          Verba
-        </h1>
-        {progress.length > 0 && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          {user?.picture ? (
+            <img 
+              src={user.picture} 
+              alt={user.name} 
+              style={{ width: '32px', height: '32px', borderRadius: '50%', border: '1.5px solid var(--color-forest)' }} 
+            />
+          ) : (
+            <div style={{ 
+              width: '32px', 
+              height: '32px', 
+              borderRadius: '50%', 
+              background: 'var(--color-sage)', 
+              color: 'white', 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center', 
+              fontFamily: 'Outfit',
+              fontWeight: 800,
+              fontSize: '14px',
+              border: '1.5px solid var(--color-forest)'
+            }}>
+              {user?.name.charAt(0).toUpperCase()}
+            </div>
+          )}
+          <h1 style={{ fontSize: '20px', background: 'linear-gradient(to right, #3a4f2f, #7da065)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', fontFamily: 'Outfit', fontWeight: 800, margin: 0 }}>
+            Verba
+          </h1>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          {progress.length > 0 && (
+            <button 
+              onClick={handleReset} 
+              className="btn btn-secondary" 
+              style={{ 
+                padding: '6px 12px', 
+                fontSize: '11px',
+                borderWidth: '1.5px',
+                borderRadius: '8px',
+                boxShadow: 'none'
+              }}
+              disabled={loading}
+            >
+              Reset
+            </button>
+          )}
           <button 
-            onClick={handleReset} 
+            onClick={logout}
             className="btn btn-secondary" 
             style={{ 
               padding: '6px 12px', 
               fontSize: '11px',
               borderWidth: '1.5px',
               borderRadius: '8px',
-              boxShadow: 'none'
+              boxShadow: 'none',
+              color: 'var(--color-danger)'
             }}
-            disabled={loading}
           >
-            Reset
+            Đăng xuất
           </button>
-        )}
+        </div>
       </header>
 
       {/* Left Column: Sidebar Navigation */}
       <aside className="sidebar-col animate-slideup">
         <div>
           {/* Logo Section */}
-          <div style={{ marginBottom: '32px' }}>
+          <div style={{ marginBottom: '24px' }}>
             <h1 style={{ fontSize: '32px', background: 'linear-gradient(to right, #3a4f2f, #7da065)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', fontFamily: 'Outfit', fontWeight: 800, margin: 0 }}>
               Verba
             </h1>
@@ -118,6 +176,66 @@ export default function DashboardPage() {
               Luyện dịch lộ trình (A1 - C1)
             </p>
           </div>
+
+          {/* User Profile Card */}
+          {user && (
+            <div style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '12px', 
+              marginBottom: '24px',
+              padding: '12px',
+              background: 'var(--bg-nature-light)',
+              border: '2px solid var(--color-forest)',
+              borderRadius: '16px'
+            }}>
+              {user.picture ? (
+                <img 
+                  src={user.picture} 
+                  alt={user.name} 
+                  style={{ width: '40px', height: '40px', borderRadius: '50%', border: '2px solid var(--color-forest)', flexShrink: 0 }} 
+                />
+              ) : (
+                <div style={{ 
+                  width: '40px', 
+                  height: '40px', 
+                  borderRadius: '50%', 
+                  background: 'var(--color-sage)', 
+                  color: 'white', 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'center', 
+                  fontFamily: 'Outfit',
+                  fontWeight: 800,
+                  fontSize: '18px',
+                  border: '2px solid var(--color-forest)',
+                  flexShrink: 0
+                }}>
+                  {user.name.charAt(0).toUpperCase()}
+                </div>
+              )}
+              <div style={{ flex: 1, minWidth: 0, textAlign: 'left' }}>
+                <div style={{ fontSize: '13.5px', fontWeight: 800, color: 'var(--color-forest)', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
+                  {user.name}
+                </div>
+                <button 
+                  onClick={logout}
+                  style={{ 
+                    background: 'none', 
+                    border: 'none', 
+                    color: 'var(--color-danger)', 
+                    fontSize: '11px', 
+                    fontWeight: 700, 
+                    cursor: 'pointer',
+                    padding: 0,
+                    textDecoration: 'underline'
+                  }}
+                >
+                  Đăng xuất
+                </button>
+              </div>
+            </div>
+          )}
 
           <div className="sidebar-menu">
             <button
