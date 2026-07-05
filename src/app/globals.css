@@ -492,13 +492,11 @@ p {
 
 .sidebar-col {
   width: 280px;
-  height: 100vh;
   position: fixed;
   top: 0;
-  left: 0;
-  background: #ffffff;
+  bottom: 0;
   border-right: 3.5px solid var(--color-forest);
-  padding: 40px 24px;
+  padding: 24px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;

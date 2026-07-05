@@ -169,11 +169,15 @@ export default function DashboardPage() {
         {/* Top Portion */}
         <div>
           {/* Logo Section */}
-          <div style={{ marginBottom: '24px' }}>
+          <div style={{ 
+            marginBottom: '28px', 
+            paddingBottom: '16px', 
+            borderBottom: '2.5px dashed rgba(46, 59, 38, 0.12)' 
+          }}>
             <h1 style={{ fontSize: '32px', background: 'linear-gradient(to right, #3a4f2f, #7da065)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', fontFamily: 'Outfit', fontWeight: 800, margin: 0 }}>
               Verba
             </h1>
-            <p style={{ color: '#64748b', fontSize: '13px', marginTop: '2px', lineHeight: '1.4' }}>
+            <p style={{ color: '#64748b', fontSize: '13px', marginTop: '4px', lineHeight: '1.4', margin: 0 }}>
               Luyện dịch lộ trình (A1 - C1)
             </p>
           </div>
