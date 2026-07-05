@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
-export function useLevels() {
+export function useLevels(token: string | null) {
   const [levels, setLevels] = useState<any[]>([]);
   const [lessons, setLessons] = useState<any[]>([]);
   const [progress, setProgress] = useState<any[]>([]);
@@ -10,10 +10,13 @@ export function useLevels() {
   const [error, setError] = useState('');
 
   const fetchData = useCallback(async () => {
+    if (!token) {
+      setLoading(false);
+      return;
+    }
     try {
       setLoading(true);
       setError('');
-      const token = localStorage.getItem('verba_token');
       const res = await fetch(`${API_URL}/api/levels`, {
         headers: {
           'Authorization': `Bearer ${token}`
@@ -32,12 +35,12 @@ export function useLevels() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [token]);
 
   const resetAllProgress = useCallback(async () => {
+    if (!token) return false;
     try {
       setLoading(true);
-      const token = localStorage.getItem('verba_token');
       const res = await fetch(`${API_URL}/api/levels`, { 
         method: 'DELETE',
         headers: {
@@ -57,7 +60,7 @@ export function useLevels() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [token]);
 
   useEffect(() => {
     fetchData();

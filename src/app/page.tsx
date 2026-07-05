@@ -12,7 +12,7 @@ import VocabStore from '@/components/VocabStore';
 import LessonDirectory from '@/components/LessonDirectory';
 
 export default function DashboardPage() {
-  const { user, loading: authLoading, logout } = useAuth();
+  const { user, token, loading: authLoading, logout } = useAuth();
   const { 
     levels, 
     lessons, 
@@ -21,7 +21,7 @@ export default function DashboardPage() {
     error, 
     refetch, 
     resetProgress 
-  } = useLevels();
+  } = useLevels(token);
 
   const [direction, setDirection] = useState<'en-to-vi' | 'vi-to-en'>('en-to-vi');
   const [activeTab, setActiveTab] = useState<'roadmap' | 'vocab' | 'directory'>('roadmap');
