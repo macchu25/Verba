@@ -166,6 +166,7 @@ export default function DashboardPage() {
 
       {/* Left Column: Sidebar Navigation */}
       <aside className="sidebar-col animate-slideup">
+        {/* Top Portion */}
         <div>
           {/* Logo Section */}
           <div style={{ marginBottom: '24px' }}>
@@ -177,17 +178,97 @@ export default function DashboardPage() {
             </p>
           </div>
 
+          <div className="sidebar-menu">
+            <button
+              onClick={() => setActiveTab('roadmap')}
+              className={`btn sidebar-nav-btn ${activeTab === 'roadmap' ? 'btn-primary' : 'btn-secondary'}`}
+              style={{ 
+                borderRadius: '12px',
+                borderWidth: '2.5px',
+                boxShadow: activeTab === 'roadmap' ? '3px 3px 0px var(--color-forest)' : 'none',
+                transform: activeTab === 'roadmap' ? 'translate(-1px, -1px)' : 'none'
+              }}
+            >
+              🗺️ Lộ trình học
+            </button>
+            <button
+              onClick={() => setActiveTab('vocab')}
+              className={`btn sidebar-nav-btn ${activeTab === 'vocab' ? 'btn-primary' : 'btn-secondary'}`}
+              style={{ 
+                borderRadius: '12px',
+                borderWidth: '2.5px',
+                boxShadow: activeTab === 'vocab' ? '3px 3px 0px var(--color-forest)' : 'none',
+                transform: activeTab === 'vocab' ? 'translate(-1px, -1px)' : 'none'
+              }}
+            >
+              📚 Kho từ vựng ({totalUniqueVocabCount} từ)
+            </button>
+            <button
+              onClick={() => setActiveTab('directory')}
+              className={`btn sidebar-nav-btn ${activeTab === 'directory' ? 'btn-primary' : 'btn-secondary'}`}
+              style={{ 
+                borderRadius: '12px',
+                borderWidth: '2.5px',
+                boxShadow: activeTab === 'directory' ? '3px 3px 0px var(--color-forest)' : 'none',
+                transform: activeTab === 'directory' ? 'translate(-1px, -1px)' : 'none'
+              }}
+            >
+              🔍 Mục lục & Tìm kiếm ({lessons.length} bài)
+            </button>
+          </div>
+        </div>
+
+        {/* Bottom Portion */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', width: '100%' }} className="hide-on-mobile">
+          {/* Reset progress widget inside sidebar */}
+          {progress.length > 0 && (
+            <div 
+              className="glass-panel" 
+              style={{ 
+                padding: '18px', 
+                background: '#ffffff', 
+                border: '2.5px solid var(--color-forest)', 
+                borderRadius: '16px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '10px'
+              }}
+            >
+              <strong style={{ fontSize: '13px', color: 'var(--color-forest)', display: 'block', fontFamily: 'Outfit' }}>
+                Quản lý tiến độ
+              </strong>
+              <p style={{ fontSize: '11px', color: '#64748b', lineHeight: '1.4' }}>
+                Bạn có thể xóa lịch sử dịch thuật để bắt đầu lại lộ trình.
+              </p>
+              <button 
+                onClick={handleReset} 
+                className="btn btn-secondary" 
+                style={{ 
+                  width: '100%', 
+                  padding: '8px 12px', 
+                  fontSize: '12px',
+                  borderWidth: '2px',
+                  borderRadius: '8px',
+                  boxShadow: 'none'
+                }}
+                disabled={loading}
+              >
+                Reset Tiến độ
+              </button>
+            </div>
+          )}
+
           {/* User Profile Card */}
           {user && (
             <div style={{ 
               display: 'flex', 
               alignItems: 'center', 
               gap: '12px', 
-              marginBottom: '24px',
               padding: '12px',
               background: 'var(--bg-nature-light)',
               border: '2px solid var(--color-forest)',
-              borderRadius: '16px'
+              borderRadius: '16px',
+              width: '100%'
             }}>
               {user.picture ? (
                 <img 
@@ -236,84 +317,7 @@ export default function DashboardPage() {
               </div>
             </div>
           )}
-
-          <div className="sidebar-menu">
-            <button
-              onClick={() => setActiveTab('roadmap')}
-              className={`btn sidebar-nav-btn ${activeTab === 'roadmap' ? 'btn-primary' : 'btn-secondary'}`}
-              style={{ 
-                borderRadius: '12px',
-                borderWidth: '2.5px',
-                boxShadow: activeTab === 'roadmap' ? '3px 3px 0px var(--color-forest)' : 'none',
-                transform: activeTab === 'roadmap' ? 'translate(-1px, -1px)' : 'none'
-              }}
-            >
-              🗺️ Lộ trình học
-            </button>
-            <button
-              onClick={() => setActiveTab('vocab')}
-              className={`btn sidebar-nav-btn ${activeTab === 'vocab' ? 'btn-primary' : 'btn-secondary'}`}
-              style={{ 
-                borderRadius: '12px',
-                borderWidth: '2.5px',
-                boxShadow: activeTab === 'vocab' ? '3px 3px 0px var(--color-forest)' : 'none',
-                transform: activeTab === 'vocab' ? 'translate(-1px, -1px)' : 'none'
-              }}
-            >
-              📚 Kho từ vựng ({totalUniqueVocabCount} từ)
-            </button>
-            <button
-              onClick={() => setActiveTab('directory')}
-              className={`btn sidebar-nav-btn ${activeTab === 'directory' ? 'btn-primary' : 'btn-secondary'}`}
-              style={{ 
-                borderRadius: '12px',
-                borderWidth: '2.5px',
-                boxShadow: activeTab === 'directory' ? '3px 3px 0px var(--color-forest)' : 'none',
-                transform: activeTab === 'directory' ? 'translate(-1px, -1px)' : 'none'
-              }}
-            >
-              🔍 Mục lục & Tìm kiếm ({lessons.length} bài)
-            </button>
-          </div>
         </div>
-
-        {/* Reset progress widget inside sidebar */}
-        {progress.length > 0 && (
-          <div 
-            className="glass-panel" 
-            style={{ 
-              padding: '18px', 
-              background: '#ffffff', 
-              border: '2.5px solid var(--color-forest)', 
-              borderRadius: '16px',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '10px'
-            }}
-          >
-            <strong style={{ fontSize: '13px', color: 'var(--color-forest)', display: 'block', fontFamily: 'Outfit' }}>
-              Quản lý tiến độ
-            </strong>
-            <p style={{ fontSize: '11px', color: '#64748b', lineHeight: '1.4' }}>
-              Bạn có thể xóa lịch sử dịch thuật để bắt đầu lại lộ trình.
-            </p>
-            <button 
-              onClick={handleReset} 
-              className="btn btn-secondary" 
-              style={{ 
-                width: '100%', 
-                padding: '8px 12px', 
-                fontSize: '12px',
-                borderWidth: '2px',
-                borderRadius: '8px',
-                boxShadow: 'none'
-              }}
-              disabled={loading}
-            >
-              Reset Tiến độ
-            </button>
-          </div>
-        )}
       </aside>
 
       {/* Right Column: Main Content Panel */}
