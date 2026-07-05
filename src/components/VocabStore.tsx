@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect, useCallback } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 
 interface VocabItem {
   word: string;
@@ -38,14 +38,20 @@ export default function VocabStore({ lessons }: VocabStoreProps) {
   const [vocabTab, setVocabTab] = useState<'suggested' | 'personal'>('suggested');
   const [personalVocab, setPersonalVocab] = useState<AggregatedVocab[]>([]);
 
-  // Flashcard review states
-  const [reviewMode, setReviewMode] = useState<'list' | 'groups' | 'direction_select' | 'session' | 'summary'>('list');
+  // Practice session states
+  const [reviewMode, setReviewMode] = useState<'list' | 'groups' | 'settings_select' | 'session' | 'summary'>('list');
   const [activeGroup, setActiveGroup] = useState<{ title: string; words: AggregatedVocab[] } | null>(null);
   const [quizDirection, setQuizDirection] = useState<'en-to-vi' | 'vi-to-en'>('en-to-vi');
+  const [quizMode, setQuizMode] = useState<'flashcard' | 'typing'>('flashcard');
   const [sessionCards, setSessionCards] = useState<AggregatedVocab[]>([]);
   const [currentCardIdx, setCurrentCardIdx] = useState(0);
   const [showMeaning, setShowMeaning] = useState(false);
   const [learnedCount, setLearnedCount] = useState(0);
+
+  // Typing quiz states
+  const [typedAnswer, setTypedAnswer] = useState('');
+  const [isAnswerSubmitted, setIsAnswerSubmitted] = useState(false);
+  const [isAnswerCorrect, setIsAnswerCorrect] = useState(false);
 
   // Load personal vocabulary from localStorage
   const loadPersonalVocab = () => {
@@ -146,29 +152,67 @@ export default function VocabStore({ lessons }: VocabStoreProps) {
   // Session handlers
   const handleSelectGroup = (group: { title: string; words: AggregatedVocab[] }) => {
     setActiveGroup(group);
-    setReviewMode('direction_select');
+    setQuizDirection('en-to-vi');
+    setQuizMode('flashcard');
+    setReviewMode('settings_select');
   };
 
-  const handleStartSession = (direction: 'en-to-vi' | 'vi-to-en') => {
+  const handleStartSession = () => {
     if (!activeGroup) return;
-    setQuizDirection(direction);
     setSessionCards(shuffleArray(activeGroup.words));
     setCurrentCardIdx(0);
     setShowMeaning(false);
+    setTypedAnswer('');
+    setIsAnswerSubmitted(false);
+    setIsAnswerCorrect(false);
     setLearnedCount(0);
     setReviewMode('session');
   };
 
-  const handleAnswer = (known: boolean) => {
-    if (known) {
+  const checkAnswer = (typed: string, correct: string) => {
+    const cleanTyped = typed.trim().toLowerCase();
+    const cleanCorrect = correct.trim().toLowerCase();
+    
+    if (quizDirection === 'vi-to-en') {
+      // English spelling must be exact
+      return cleanTyped === cleanCorrect;
+    } else {
+      // Vietnamese translation allows substring matches for flexibility
+      return cleanCorrect.includes(cleanTyped) || cleanTyped.includes(cleanCorrect);
+    }
+  };
+
+  const handleVerifyAnswer = () => {
+    if (!typedAnswer.trim()) return;
+    const currentCard = sessionCards[currentCardIdx];
+    const correctAnswer = quizDirection === 'en-to-vi' ? currentCard.meaning : currentCard.word;
+    const isCorrect = checkAnswer(typedAnswer, correctAnswer);
+    
+    setIsAnswerCorrect(isCorrect);
+    setIsAnswerSubmitted(true);
+    if (isCorrect) {
       setLearnedCount((prev) => prev + 1);
     }
+  };
+
+  const handleNextCard = () => {
     if (currentCardIdx < sessionCards.length - 1) {
       setCurrentCardIdx((prev) => prev + 1);
       setShowMeaning(false);
+      setTypedAnswer('');
+      setIsAnswerSubmitted(false);
+      setIsAnswerCorrect(false);
     } else {
       setReviewMode('summary');
     }
+  };
+
+  // Flashcard response handlers
+  const handleFlashcardAnswer = (known: boolean) => {
+    if (known) {
+      setLearnedCount((prev) => prev + 1);
+    }
+    handleNextCard();
   };
 
   // Rendering screens based on reviewMode
@@ -182,7 +226,7 @@ export default function VocabStore({ lessons }: VocabStoreProps) {
                 📝 Ôn tập Từ vựng Cá nhân
               </h3>
               <p style={{ color: '#4f6b3e', fontSize: '14px', marginTop: '6px', margin: 0 }}>
-                Chọn nhóm từ vựng theo bài học để bắt đầu ôn tập bằng thẻ ghi nhớ (Flashcard).
+                Chọn nhóm từ vựng theo bài học để bắt đầu ôn tập bằng thẻ ghi nhớ hoặc bài kiểm tra viết.
               </p>
             </div>
             <button 
@@ -235,7 +279,7 @@ export default function VocabStore({ lessons }: VocabStoreProps) {
                     boxShadow: '2px 2px 0px var(--color-forest)'
                   }}
                 >
-                  ▶️ Bắt đầu ôn tập
+                  ▶️ Chọn chế độ & Bắt đầu
                 </button>
               </div>
             ))}
@@ -251,13 +295,13 @@ export default function VocabStore({ lessons }: VocabStoreProps) {
     );
   }
 
-  if (reviewMode === 'direction_select') {
+  if (reviewMode === 'settings_select') {
     return (
       <div className="animate-slideup" style={{ marginTop: '20px', display: 'flex', justifyContent: 'center' }}>
         <div 
           className="glass-panel" 
           style={{ 
-            maxWidth: '500px', 
+            maxWidth: '520px', 
             width: '100%', 
             padding: '32px', 
             background: '#fcfaf2', 
@@ -272,53 +316,87 @@ export default function VocabStore({ lessons }: VocabStoreProps) {
         >
           <div>
             <h3 style={{ fontSize: '20px', color: 'var(--color-forest)', fontFamily: 'Outfit', margin: 0 }}>
-              Chọn hướng kiểm tra
+              Cấu hình phiên ôn tập
             </h3>
             <p style={{ color: '#64748b', fontSize: '13.5px', marginTop: '4px', margin: 0, fontWeight: 600 }}>
               Nhóm: {activeGroup?.title} ({activeGroup?.words.length} từ)
             </p>
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            <button
-              onClick={() => handleStartSession('en-to-vi')}
-              className="btn btn-primary"
-              style={{
-                padding: '16px',
-                borderRadius: '12px',
-                borderWidth: '2.5px',
-                fontSize: '15px',
-                fontWeight: 700,
-                justifyContent: 'center',
-                boxShadow: '3px 3px 0px var(--color-forest)'
-              }}
-            >
-              🇺🇸 Tiếng Anh ➡️ 🇻🇳 Tiếng Việt
-            </button>
-            <button
-              onClick={() => handleStartSession('vi-to-en')}
-              className="btn btn-primary"
-              style={{
-                padding: '16px',
-                borderRadius: '12px',
-                borderWidth: '2.5px',
-                fontSize: '15px',
-                fontWeight: 700,
-                justifyContent: 'center',
-                boxShadow: '3px 3px 0px var(--color-forest)'
-              }}
-            >
-              🇻🇳 Tiếng Việt ➡️ 🇺🇸 Tiếng Anh
-            </button>
+          {/* Settings Options */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', textAlign: 'left' }}>
+            {/* Direction */}
+            <div>
+              <label style={{ display: 'block', fontSize: '12px', fontWeight: 800, color: 'var(--color-forest)', textTransform: 'uppercase', marginBottom: '8px' }}>
+                HƯỚNG KIỂM TRA:
+              </label>
+              <div style={{ display: 'flex', gap: '10px' }}>
+                <button
+                  onClick={() => setQuizDirection('en-to-vi')}
+                  className={`btn ${quizDirection === 'en-to-vi' ? 'btn-primary' : 'btn-secondary'}`}
+                  style={{ flex: 1, padding: '12px', fontSize: '13.5px', borderRadius: '8px', borderWidth: '2px', boxShadow: quizDirection === 'en-to-vi' ? '2px 2px 0px var(--color-forest)' : 'none', transform: quizDirection === 'en-to-vi' ? 'translate(-1px,-1px)' : 'none' }}
+                >
+                  🇺🇸 Anh ➡️ 🇻🇳 Việt
+                </button>
+                <button
+                  onClick={() => setQuizDirection('vi-to-en')}
+                  className={`btn ${quizDirection === 'vi-to-en' ? 'btn-primary' : 'btn-secondary'}`}
+                  style={{ flex: 1, padding: '12px', fontSize: '13.5px', borderRadius: '8px', borderWidth: '2px', boxShadow: quizDirection === 'vi-to-en' ? '2px 2px 0px var(--color-forest)' : 'none', transform: quizDirection === 'vi-to-en' ? 'translate(-1px,-1px)' : 'none' }}
+                >
+                  🇻🇳 Việt ➡️ 🇺🇸 Anh
+                </button>
+              </div>
+            </div>
+
+            {/* Mode */}
+            <div>
+              <label style={{ display: 'block', fontSize: '12px', fontWeight: 800, color: 'var(--color-forest)', textTransform: 'uppercase', marginBottom: '8px' }}>
+                HÌNH THỨC ÔN TẬP:
+              </label>
+              <div style={{ display: 'flex', gap: '10px' }}>
+                <button
+                  onClick={() => setQuizMode('flashcard')}
+                  className={`btn ${quizMode === 'flashcard' ? 'btn-primary' : 'btn-secondary'}`}
+                  style={{ flex: 1, padding: '12px', fontSize: '13.5px', borderRadius: '8px', borderWidth: '2px', boxShadow: quizMode === 'flashcard' ? '2px 2px 0px var(--color-forest)' : 'none', transform: quizMode === 'flashcard' ? 'translate(-1px,-1px)' : 'none' }}
+                >
+                  🃏 Thẻ ghi nhớ (Flashcard)
+                </button>
+                <button
+                  onClick={() => setQuizMode('typing')}
+                  className={`btn ${quizMode === 'typing' ? 'btn-primary' : 'btn-secondary'}`}
+                  style={{ flex: 1, padding: '12px', fontSize: '13.5px', borderRadius: '8px', borderWidth: '2px', boxShadow: quizMode === 'typing' ? '2px 2px 0px var(--color-forest)' : 'none', transform: quizMode === 'typing' ? 'translate(-1px,-1px)' : 'none' }}
+                >
+                  ✍️ Nhập đáp án (Quiz viết)
+                </button>
+              </div>
+            </div>
           </div>
 
-          <button 
-            onClick={() => setReviewMode('groups')} 
-            className="btn btn-secondary" 
-            style={{ width: '100%', padding: '10px', borderWidth: '2px', borderRadius: '8px', fontSize: '13px', boxShadow: 'none', justifyContent: 'center' }}
-          >
-            Quay lại chọn nhóm
-          </button>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '8px' }}>
+            <button
+              onClick={handleStartSession}
+              className="btn btn-primary"
+              style={{
+                width: '100%',
+                padding: '14px',
+                borderRadius: '10px',
+                borderWidth: '2.5px',
+                fontSize: '15px',
+                fontWeight: 800,
+                justifyContent: 'center',
+                boxShadow: '3px 3px 0px var(--color-forest)'
+              }}
+            >
+              🚀 Bắt đầu
+            </button>
+            <button 
+              onClick={() => setReviewMode('groups')} 
+              className="btn btn-secondary" 
+              style={{ width: '100%', padding: '10px', borderWidth: '2px', borderRadius: '8px', fontSize: '13px', boxShadow: 'none', justifyContent: 'center' }}
+            >
+              Quay lại chọn nhóm
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -329,12 +407,14 @@ export default function VocabStore({ lessons }: VocabStoreProps) {
     const totalCards = sessionCards.length;
     const progressPercent = ((currentCardIdx) / totalCards) * 100;
 
+    const correctAnswer = quizDirection === 'en-to-vi' ? currentCard.meaning : currentCard.word;
+
     return (
       <div className="animate-slideup" style={{ marginTop: '20px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '20px' }}>
         {/* Session Stats Header */}
         <div style={{ maxWidth: '600px', width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <span style={{ fontSize: '13.5px', fontWeight: 800, color: 'var(--color-forest)' }}>
-            Tiến trình: {currentCardIdx + 1} / {totalCards} từ
+            Tiến trình: {currentCardIdx + 1} / {totalCards} từ ({quizMode === 'flashcard' ? 'Thẻ ghi nhớ' : 'Quiz viết'})
           </span>
           <button
             onClick={() => {
@@ -354,13 +434,13 @@ export default function VocabStore({ lessons }: VocabStoreProps) {
           <div style={{ width: `${progressPercent}%`, height: '100%', background: 'var(--color-sage)', transition: 'width 0.3s ease' }} />
         </div>
 
-        {/* Flashcard container */}
+        {/* Flashcard / Quiz container */}
         <div 
           className="glass-panel"
           style={{
             maxWidth: '600px',
             width: '100%',
-            minHeight: '320px',
+            minHeight: '340px',
             background: '#ffffff',
             border: '3px solid var(--color-forest)',
             boxShadow: 'var(--shadow-earthy)',
@@ -374,7 +454,7 @@ export default function VocabStore({ lessons }: VocabStoreProps) {
             gap: '24px'
           }}
         >
-          {/* Question Side */}
+          {/* Question Display */}
           <div style={{ width: '100%' }}>
             <span style={{ fontSize: '11px', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 800 }}>
               {quizDirection === 'en-to-vi' ? 'Tiếng Anh' : 'Nghĩa Tiếng Việt'}
@@ -391,83 +471,192 @@ export default function VocabStore({ lessons }: VocabStoreProps) {
             </h2>
           </div>
 
-          {/* Meaning / Details Side (Revealed) */}
-          {showMeaning ? (
-            <div className="animate-slideup" style={{ width: '100%', borderTop: '2px dashed rgba(46,59,38,0.12)', paddingTop: '20px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              <span style={{ fontSize: '11px', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 800 }}>
-                {quizDirection === 'en-to-vi' ? 'Nghĩa & Chi tiết' : 'Từ Tiếng Anh'}
-              </span>
-              <div>
-                <h3 style={{ fontSize: quizDirection === 'en-to-vi' ? '24px' : '32px', color: 'var(--color-forest)', fontFamily: 'Outfit', margin: 0 }}>
-                  {quizDirection === 'en-to-vi' ? currentCard.meaning : currentCard.word}
-                </h3>
-                {currentCard.ipa && (
-                  <span style={{ display: 'inline-block', fontSize: '14.5px', color: '#64748b', fontFamily: 'Outfit', marginTop: '4px', fontWeight: 600 }}>
-                    {currentCard.ipa}
+          {/* Practice view mode toggle */}
+          {quizMode === 'flashcard' ? (
+            /* --- FLASHCARD MODE --- */
+            <>
+              {showMeaning ? (
+                <div className="animate-slideup" style={{ width: '100%', borderTop: '2px dashed rgba(46,59,38,0.12)', paddingTop: '20px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  <span style={{ fontSize: '11px', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 800 }}>
+                    {quizDirection === 'en-to-vi' ? 'Nghĩa & Chi tiết' : 'Từ Tiếng Anh'}
                   </span>
-                )}
-              </div>
-              {currentCard.example && (
-                <p style={{ fontSize: '13px', color: '#64748b', fontStyle: 'italic', margin: '8px auto 0 auto', maxWidth: '440px', borderLeft: '3px solid var(--color-sage)', paddingLeft: '8px', textAlign: 'left', lineHeight: '1.45' }}>
-                  &ldquo;{currentCard.example}&rdquo;
-                </p>
+                  <div>
+                    <h3 style={{ fontSize: quizDirection === 'en-to-vi' ? '24px' : '32px', color: 'var(--color-forest)', fontFamily: 'Outfit', margin: 0 }}>
+                      {quizDirection === 'en-to-vi' ? currentCard.meaning : currentCard.word}
+                    </h3>
+                    {currentCard.ipa && (
+                      <span style={{ display: 'inline-block', fontSize: '14.5px', color: '#64748b', fontFamily: 'Outfit', marginTop: '4px', fontWeight: 600 }}>
+                        {currentCard.ipa}
+                      </span>
+                    )}
+                  </div>
+                  {currentCard.example && (
+                    <p style={{ fontSize: '13px', color: '#64748b', fontStyle: 'italic', margin: '8px auto 0 auto', maxWidth: '440px', borderLeft: '3px solid var(--color-sage)', paddingLeft: '8px', textAlign: 'left', lineHeight: '1.45' }}>
+                      &ldquo;{currentCard.example}&rdquo;
+                    </p>
+                  )}
+                </div>
+              ) : (
+                <button
+                  onClick={() => setShowMeaning(true)}
+                  className="btn btn-primary animate-pulse"
+                  style={{
+                    padding: '12px 24px',
+                    borderRadius: '10px',
+                    borderWidth: '2px',
+                    fontSize: '14px',
+                    fontWeight: 700,
+                    boxShadow: '3px 3px 0px var(--color-forest)'
+                  }}
+                >
+                  👁️ Xem giải nghĩa
+                </button>
               )}
-            </div>
-          ) : (
-            <button
-              onClick={() => setShowMeaning(true)}
-              className="btn btn-primary animate-pulse"
-              style={{
-                padding: '12px 24px',
-                borderRadius: '10px',
-                borderWidth: '2px',
-                fontSize: '14px',
-                fontWeight: 700,
-                boxShadow: '3px 3px 0px var(--color-forest)'
-              }}
-            >
-              👁️ Xem giải nghĩa
-            </button>
-          )}
 
-          {/* Answer Controls */}
-          {showMeaning && (
-            <div style={{ display: 'flex', gap: '16px', width: '100%' }}>
-              <button
-                onClick={() => handleAnswer(false)}
-                className="btn btn-secondary"
-                style={{
-                  flex: 1,
-                  padding: '12px',
-                  borderRadius: '10px',
-                  borderWidth: '2px',
-                  fontSize: '14px',
-                  fontWeight: 700,
-                  justifyContent: 'center',
-                  borderColor: 'var(--color-danger)',
-                  color: 'var(--color-danger)',
-                  boxShadow: 'none'
-                }}
-              >
-                ❌ Chưa thuộc
-              </button>
-              <button
-                onClick={() => handleAnswer(true)}
-                className="btn btn-primary"
-                style={{
-                  flex: 1,
-                  padding: '12px',
-                  borderRadius: '10px',
-                  borderWidth: '2px',
-                  fontSize: '14px',
-                  fontWeight: 700,
-                  justifyContent: 'center',
-                  background: 'var(--color-sage)',
-                  boxShadow: '3px 3px 0px var(--color-forest)'
-                }}
-              >
-                ✅ Đã thuộc
-              </button>
+              {/* Flashcard Answer Controls */}
+              {showMeaning && (
+                <div style={{ display: 'flex', gap: '16px', width: '100%' }}>
+                  <button
+                    onClick={() => handleFlashcardAnswer(false)}
+                    className="btn btn-secondary"
+                    style={{
+                      flex: 1,
+                      padding: '12px',
+                      borderRadius: '10px',
+                      borderWidth: '2px',
+                      fontSize: '14px',
+                      fontWeight: 700,
+                      justifyContent: 'center',
+                      borderColor: 'var(--color-danger)',
+                      color: 'var(--color-danger)',
+                      boxShadow: 'none'
+                    }}
+                  >
+                    ❌ Chưa thuộc
+                  </button>
+                  <button
+                    onClick={() => handleFlashcardAnswer(true)}
+                    className="btn btn-primary"
+                    style={{
+                      flex: 1,
+                      padding: '12px',
+                      borderRadius: '10px',
+                      borderWidth: '2px',
+                      fontSize: '14px',
+                      fontWeight: 700,
+                      justifyContent: 'center',
+                      background: 'var(--color-sage)',
+                      boxShadow: '3px 3px 0px var(--color-forest)'
+                    }}
+                  >
+                    ✅ Đã thuộc
+                  </button>
+                </div>
+              )}
+            </>
+          ) : (
+            /* --- TYPING MODE --- */
+            <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              {!isAnswerSubmitted ? (
+                <form 
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    handleVerifyAnswer();
+                  }}
+                  style={{ display: 'flex', flexDirection: 'column', gap: '12px', width: '100%' }}
+                >
+                  <input
+                    type="text"
+                    value={typedAnswer}
+                    onChange={(e) => setTypedAnswer(e.target.value)}
+                    placeholder={quizDirection === 'en-to-vi' ? 'Nhập nghĩa Tiếng Việt của từ này...' : 'Nhập từ Tiếng Anh của từ này...'}
+                    autoFocus
+                    style={{
+                      width: '100%',
+                      padding: '14px 16px',
+                      borderRadius: '12px',
+                      border: '2.5px solid var(--color-forest)',
+                      fontSize: '15px',
+                      fontFamily: 'var(--font-primary)',
+                      textAlign: 'center',
+                      outline: 'none'
+                    }}
+                  />
+                  <button
+                    type="submit"
+                    className="btn btn-primary"
+                    disabled={!typedAnswer.trim()}
+                    style={{
+                      padding: '12px',
+                      borderRadius: '10px',
+                      borderWidth: '2px',
+                      fontSize: '14px',
+                      fontWeight: 700,
+                      justifyContent: 'center',
+                      boxShadow: typedAnswer.trim() ? '3px 3px 0px var(--color-forest)' : 'none'
+                    }}
+                  >
+                    Verify Answer
+                  </button>
+                </form>
+              ) : (
+                <div className="animate-slideup" style={{ display: 'flex', flexDirection: 'column', gap: '16px', width: '100%' }}>
+                  {/* Correct / Incorrect alert */}
+                  <div 
+                    style={{
+                      padding: '16px',
+                      borderRadius: '12px',
+                      border: '2px solid',
+                      borderColor: isAnswerCorrect ? 'var(--color-sage)' : 'var(--color-danger)',
+                      background: isAnswerCorrect ? 'rgba(125,160,101,0.08)' : 'rgba(244,63,94,0.08)',
+                      color: isAnswerCorrect ? 'var(--color-forest)' : 'var(--color-danger)',
+                      fontSize: '15px',
+                      fontWeight: 800
+                    }}
+                  >
+                    {isAnswerCorrect ? '🎉 Chính xác!' : '❌ Chưa chính xác!'}
+                  </div>
+
+                  {/* Show actual answer */}
+                  <div style={{ borderTop: '2px dashed rgba(46,59,38,0.12)', paddingTop: '16px', textAlign: 'left' }}>
+                    <div style={{ fontSize: '11px', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 800 }}>
+                      Đáp án đúng:
+                    </div>
+                    <div style={{ fontSize: '22px', fontWeight: 800, color: 'var(--color-forest)', marginTop: '4px', fontFamily: 'Outfit' }}>
+                      {correctAnswer}
+                    </div>
+                    {currentCard.ipa && (
+                      <span style={{ display: 'inline-block', fontSize: '13.5px', color: '#64748b', fontFamily: 'Outfit', marginTop: '2px', fontWeight: 600 }}>
+                        {currentCard.ipa}
+                      </span>
+                    )}
+
+                    {currentCard.example && (
+                      <p style={{ fontSize: '13px', color: '#64748b', fontStyle: 'italic', marginTop: '10px', borderLeft: '3px solid var(--color-sage)', paddingLeft: '8px', lineHeight: '1.45' }}>
+                        &ldquo;{currentCard.example}&rdquo;
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Next button */}
+                  <button
+                    onClick={handleNextCard}
+                    className="btn btn-primary"
+                    autoFocus
+                    style={{
+                      padding: '12px',
+                      borderRadius: '10px',
+                      borderWidth: '2px',
+                      fontSize: '14px',
+                      fontWeight: 700,
+                      justifyContent: 'center',
+                      boxShadow: '3px 3px 0px var(--color-forest)'
+                    }}
+                  >
+                    Tiếp tục ➡️
+                  </button>
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -502,7 +691,7 @@ export default function VocabStore({ lessons }: VocabStoreProps) {
               Hoàn thành ôn tập!
             </h3>
             <p style={{ color: '#64748b', fontSize: '13.5px', marginTop: '4px', margin: 0, fontWeight: 600 }}>
-              Nhóm: {activeGroup?.title}
+              Nhóm: {activeGroup?.title} ({quizMode === 'flashcard' ? 'Thẻ ghi nhớ' : 'Quiz viết'})
             </p>
           </div>
 
@@ -513,13 +702,13 @@ export default function VocabStore({ lessons }: VocabStoreProps) {
               {learnedCount} / {sessionCards.length}
             </div>
             <div style={{ fontSize: '14.5px', color: 'var(--color-sage)', fontWeight: 800 }}>
-              Thuộc {percentage}% số từ vựng!
+              {quizMode === 'flashcard' ? `Thuộc ${percentage}% số từ vựng!` : `Đạt ${percentage}% đáp án chính xác!`}
             </div>
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
             <button
-              onClick={() => handleStartSession(quizDirection)}
+              onClick={handleStartSession}
               className="btn btn-primary"
               style={{
                 width: '100%',
