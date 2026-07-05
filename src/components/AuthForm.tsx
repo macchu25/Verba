@@ -47,7 +47,7 @@ export default function AuthForm() {
               {
                 theme: 'outline',
                 size: 'large',
-                width: '100%',
+                width: '360',
                 shape: 'rectangular',
                 text: 'signin_with',
               }
@@ -147,14 +147,16 @@ export default function AuthForm() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           {googleClientId ? (
             <div 
-              ref={googleBtnRef} 
               style={{ 
-                minHeight: '44px',
-                borderRadius: '8px',
-                overflow: 'hidden',
-                border: '1.5px solid rgba(46, 59, 38, 0.12)'
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                width: '100%',
+                minHeight: '44px'
               }} 
-            />
+            >
+              <div ref={googleBtnRef} />
+            </div>
           ) : (
             <div style={{
               padding: '16px',
