@@ -206,6 +206,8 @@ export default function LessonWorkspacePage() {
                   text={sourceText} 
                   vocabList={lesson.vocabulary} 
                   isEnToVi={isEnToVi} 
+                  lessonTitle={lesson.title}
+                  lessonId={lesson._id}
                 />
               </div>
               {isEnToVi && (

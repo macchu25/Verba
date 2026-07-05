@@ -13,9 +13,11 @@ interface InteractiveTextProps {
   text: string;
   vocabList: VocabItem[];
   isEnToVi: boolean;
+  lessonTitle?: string;
+  lessonId?: string;
 }
 
-export default function InteractiveText({ text, vocabList, isEnToVi }: InteractiveTextProps) {
+export default function InteractiveText({ text, vocabList, isEnToVi, lessonTitle, lessonId }: InteractiveTextProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [hoveredVocabIdx, setHoveredVocabIdx] = useState<number | null>(null);
   const [tooltipAlign, setTooltipAlign] = useState<'center' | 'left' | 'right'>('center');
@@ -197,6 +199,8 @@ export default function InteractiveText({ text, vocabList, isEnToVi }: Interacti
       ipa: lessonVocab?.ipa || '',
       meaning: cleanMeaning,
       example: lessonVocab?.example || '',
+      lessonTitle: lessonTitle || 'Từ bôi đen tự do',
+      lessonId: lessonId || 'personal',
       savedAt: Date.now()
     };
 
